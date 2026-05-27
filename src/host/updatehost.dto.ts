@@ -1,25 +1,26 @@
-// src/host/dto/update-host.dto.ts
-import { IsEmail, IsString, IsInt, IsOptional } from 'class-validator';
-import { Role } from 'src/enum/role.enum';
+// src/host/updatehost.dto.ts
+
+import { IsEmail, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class UpdateHostDto {
-  @IsEmail()
   @IsOptional()
+  @IsEmail()
   email?: string;
 
-  @IsString()
   @IsOptional()
+  @IsString()
   name?: string;
 
-  @IsString()
   @IsOptional()
+  @IsString()
   number?: string;
 
-  @IsString()
   @IsOptional()
+  @IsString()
+  @MinLength(6)
   password?: string;
 
-  @IsInt()
   @IsOptional()
-  roleId?: Role;
+  @IsString()
+  role?: string;
 }

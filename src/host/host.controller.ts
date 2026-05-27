@@ -1,9 +1,8 @@
-import { Controller, Post, Body, Get, Patch, Param, Delete, ConflictException, NotFoundException, InternalServerErrorException } from '@nestjs/common';
+import { Controller, Post, Body, Get, Patch, Param, Delete, Query } from '@nestjs/common';
 import { Host } from './host.entity';
 import { HostService } from './host.service';
 import { CreateHostDto } from './createhost.dto';
 import { UpdateHostDto } from './updatehost.dto';
-
 
 class SuccessResponse<T> {
   message: string;
@@ -16,59 +15,53 @@ export class HostController {
 
   @Post()
   async create(@Body() createHostDto: CreateHostDto): Promise<SuccessResponse<Host>> {
-    try {
-      const host = await this.hostService.createHost(createHostDto);
-      return { message: 'Host created successfully', data: host };
-    } catch (error) {
-      if (error instanceof ConflictException) {
-        throw new ConflictException('A host with this email already exists.');
-      } else if (error instanceof NotFoundException) {
-        throw new NotFoundException(error.message);
-      } else {
-        console.error('Error creating host:', error); // Log the detailed error
-        throw new InternalServerErrorException('Error creating host');
-      }
-    }
+    const host = await this.hostService.createHost(createHostDto);
+    return { message: 'Host created successfully', data: host };
   }
 
   @Get()
-  async findAll(): Promise<SuccessResponse<Host[]>> {
-    try {
-      const hosts = await this.hostService.findAllHosts();
-      return { message: 'Hosts retrieved successfully', data: hosts };
-    } catch (error) {
-      console.error('Error finding hosts:', error); // Log the detailed error
-      throw new InternalServerErrorException('Error finding hosts');
-    }
+async getHosts(@Query('search') search?: string): Promise<SuccessResponse<Host[]>> {
+  if (search && search.length >= 2) {
+    const results = await this.hostService.searchHostsByName(search);
+    return {
+      message: 'Matching hosts retrieved successfully',
+      data: results,
+    };
+  } else {
+    const hosts = await this.hostService.findAllHosts();
+    return {
+      message: 'All hosts retrieved successfully',
+      data: hosts,
+    };
+  }
+}
+
+
+  // ✅ Rename route to match frontend
+  @Post('bulk-upload')
+  async addMultipleHosts(@Body('hosts') hosts: CreateHostDto[]): Promise<SuccessResponse<Host[]>> {
+    const savedHosts = await this.hostService.addMultipleHosts(hosts);
+    return { message: 'Hosts saved successfully', data: savedHosts };
   }
 
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateHostDto: UpdateHostDto): Promise<SuccessResponse<Host>> {
-    try {
-      const host = await this.hostService.updateHost(id, updateHostDto);
-      return { message: 'Host updated successfully', data: host };
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw new NotFoundException(`Host with id ${id} not found`);
-      } else {
-        console.error('Error updating host:', error); // Log the detailed error
-        throw new InternalServerErrorException('Error updating host');
-      }
-    }
+  async update(@Param('id') id: number, @Body() updateHostDto: UpdateHostDto): Promise<SuccessResponse<Host>> {
+    const host = await this.hostService.updateHost(id, updateHostDto);
+    return { message: 'Host updated successfully', data: host };
   }
 
   @Delete(':id')
-  async delete(@Param('id') id: string): Promise<SuccessResponse<void>> {
-    try {
-      await this.hostService.deleteHost(id);
-      return { message: 'Host deleted successfully', data: null };
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw new NotFoundException(`Host with id ${id} not found`);
-      } else {
-        console.error('Error deleting host:', error); // Log the detailed error
-        throw new InternalServerErrorException('Error deleting host');
-      }
-    }
+  async delete(@Param('id') id: number): Promise<SuccessResponse<void>> {
+    await this.hostService.deleteHost(id);
+    return { message: 'Host deleted successfully', data: null };
   }
+  @Get('search')
+  async searchHosts(@Query('query') query: string): Promise<SuccessResponse<Host[]>> {
+    const results = await this.hostService.searchHostsByName(query);
+    return {
+      message: 'Matching hosts retrieved successfully',
+      data: results,
+    };
+  }
+  
 }

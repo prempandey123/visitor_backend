@@ -1,5 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
-
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 @Entity()
 export class Visitor {
   @PrimaryGeneratedColumn()
@@ -11,7 +10,7 @@ export class Visitor {
   @Column()
   companyName: string;
 
-  @Column()
+  @Column({ nullable: true })  // <-- Make email optional
   email: string;
 
   @Column()
@@ -22,4 +21,14 @@ export class Visitor {
 
   @Column()
   hostName: string;
+
+  @Column({ type: 'text', nullable: true })
+  visitorImage: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  checkInTime: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  checkOutTime: Date;
 }
+
